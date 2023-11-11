@@ -1,0 +1,59 @@
+import numpy as np
+import cv2
+
+# Set the application name and description
+app_name = "Alignit"
+app_description = "Press 'q' to end"
+
+# Open the webcam
+cap = cv2.VideoCapture(0)
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+while True:
+    # Read a frame from the webcam
+    ret, frame = cap.read()
+
+    # Convert the frame to grayscale for face detection
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Detect faces in the frame
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+    # Draw rectangles around the detected faces
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 5)
+
+        # Calculate the center of the detected face
+        face_center_x = x + w // 2
+        face_center_y = y + h // 2
+
+        # Calculate the center of the frame
+        frame_center_x, frame_center_y = frame.shape[1] // 2, frame.shape[0] // 2
+
+        # Draw a crosshair at the center of the frame
+        cv2.drawMarker(frame, (frame_center_x, frame_center_y), (0, 255, 0), markerType=cv2.MARKER_TILTED_CROSS, thickness=5)
+
+        # Draw a smaller circle at the center of the detected face
+        cv2.circle(frame, (face_center_x, face_center_y), 5, (0, 0, 255), -1)
+
+        # Calculate the alignment error
+        alignment_error_x = frame_center_x - face_center_x
+        alignment_error_y = frame_center_y - face_center_y
+
+        # Display the alignment error
+        cv2.putText(frame, f'Alignment Error: X={alignment_error_x}, Y={alignment_error_y}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+    # Display the application name and description
+    cv2.putText(frame, app_name, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv2.putText(frame, app_description, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+    # Show the frame
+    cv2.imshow('frame', frame)
+
+    # Break the loop if 'q' is pressed
+    if cv2.waitKey(1) == ord('q'):
+        break
+
+# Release the webcam and close all windows
+cap.release()
+cv2.destroyAllWindows()
